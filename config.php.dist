@@ -1,0 +1,6 @@
+<?php
+$config = array(
+  'key_url' => "/assignment/register",
+  'posts_url' => "/assignment/posts",
+  'client_id' => "test_id",
+);
