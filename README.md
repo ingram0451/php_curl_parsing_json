@@ -1,4 +1,4 @@
-# react-fizzbuzz
+# php_curl_parsing_json
 
 ## About
 This is a simple PHP project which fetches expected data from an external API service, then generates statistics base on that.
