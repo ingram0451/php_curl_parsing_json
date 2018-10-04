@@ -5,7 +5,7 @@ This is a simple PHP project which fetches expected data from an external API se
 
 ## Requirements
 - PHP 5.4 or above
-- A client_id for the API (or you can mock the data)
+- A client_id for the API (or you can mock the response)
 
 ## How to use
 In terminal, simply execute the script with a given month number:
