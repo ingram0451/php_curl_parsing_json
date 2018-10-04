@@ -1,5 +1,7 @@
 <?php
+
 include_once "config.php";
+
 /**
  * A standard usage of curl
  * 
@@ -8,35 +10,35 @@ include_once "config.php";
  * @param array $data
  * @return type
  */
-function call_api(string $method, string $url, array $data = array()){
-   $curl = curl_init();
+function call_api(string $method, string $url, array $data = array()) {
+  $curl = curl_init();
 
-   if($method == 'POST'){
-       curl_setopt($curl, CURLOPT_POST, true);
-       // @TODO: check the type of sending params
-       curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-   } else {
-       $url = sprintf("%s?%s", $url, http_build_query($data));
-   }
+  if ($method == 'POST') {
+    curl_setopt($curl, CURLOPT_POST, true);
+    // @TODO: check the type of sending params
+    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+  } else {
+    $url = sprintf("%s?%s", $url, http_build_query($data));
+  }
 
-   curl_setopt($curl, CURLOPT_URL, $url);
-   curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-      'Content-Type: application/json',
-   ));
-   curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-   curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+  curl_setopt($curl, CURLOPT_URL, $url);
+  curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+    'Content-Type: application/json',
+  ));
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 
-   $result = curl_exec($curl);
-   if(!$result){
-     die("Connection failure");
-   }
-   curl_close($curl);
-   return $result;
+  $result = curl_exec($curl);
+  if (!$result) {
+    die("Connection failure");
+  }
+  curl_close($curl);
+  return $result;
 }
 
 /**
- * @TODO: could cache the key like in a file
  * Returns the api token
+ * @TODO: could cache the key like in a file
  * 
  * @return string
  */
@@ -52,8 +54,8 @@ function get_api_token() {
 
   $json = call_api('POST', $url, $post_parms);
   $res = json_decode($json, true);
-  
-  if(!isset($res['data']['sl_token'])){
+
+  if (!isset($res['data']['sl_token'])) {
     die($res);
   } else {
     echo "...token get\n";
@@ -61,8 +63,7 @@ function get_api_token() {
   return $res['data']['sl_token'];
 }
 
-
-function get_data_posts(int $month = 0){
+function get_data_posts(int $month = 0) {
   global $config;
   $posts = array();
   $url = $config['posts_url'];
@@ -70,13 +71,14 @@ function get_data_posts(int $month = 0){
     'sl_token' => get_api_token()
   );
 
+
   echo "fetching data now..";
-  
+
   for ($i = 1; $i < 11; $i++) {
     $get_parms['page'] = $i;
     $json = call_api('GET', $url, $get_parms);
     $res = json_decode($json, true);
-    
+
     if (!isset($res['data']['posts'])) {
       die("invalid response");
     }
@@ -94,15 +96,15 @@ function get_data_posts(int $month = 0){
  * @param int $month
  * @return array
  */
-function filter_post_data_by_month($posts, int $month = 0){
+function filter_post_data_by_month(array $posts, int $month = 0) {
   if (empty($posts)) {
     return $posts;
   }
-  
+
   $results = array();
   $filtered = array();
 
-  foreach($posts as $post) {
+  foreach ($posts as $post) {
     $created_month = date('m', strtotime($post['created_time']));
     if (!empty($month) && $created_month != $month) {
       continue;
@@ -110,17 +112,16 @@ function filter_post_data_by_month($posts, int $month = 0){
     $filtered['uuid'] = $post['id'];
     $filtered['from_id'] = $post['from_id'];
     $filtered['created_time'] = $post['created_time'];
-    
+
     // small optimization since the value is used for several times
     $filtered['post_length'] = strlen($post['message']);
-    
+
     // @TODO: could be also saved in database such as MongoDB
     $results[] = $filtered;
   }
-  
+
   return $results;
 }
-
 
 /**
  * @TODO: noted that if the object of "longest post" is requred, there might 
@@ -129,64 +130,64 @@ function filter_post_data_by_month($posts, int $month = 0){
  * @param array $data
  * @return int
  */
-function find_length_of_longest_post_by_char($data){
-    $winning_length = 0;
+function find_length_of_longest_post_by_char(array $data) {
+  $winning_length = 0;
 
-    foreach ($data as $post) {
-      if ($post['post_length'] > $winning_length) {
-        $winning_length = $post['post_length'];
-      }
+  foreach ($data as $post) {
+    if ($post['post_length'] > $winning_length) {
+      $winning_length = $post['post_length'];
     }
-    
-    return $winning_length;
+  }
+
+  return $winning_length;
 }
 
-function find_average_length_per_post($data){ 
-    $char_count = 0;
-    $post_count = 0;
-    
-    foreach ($data as $post) {
-      $char_count += $post['post_length'];
-      $post_count += 1;
-    }
- 
-    return empty($post_count) ? 0 : round($char_count/$post_count, 1);
+function find_average_length_per_post(array $data) {
+  $char_count = 0;
+  $post_count = 0;
+
+  foreach ($data as $post) {
+    $char_count += $post['post_length'];
+    $post_count += 1;
+  }
+
+  return empty($post_count) ? 0 : round($char_count / $post_count, 1);
 }
 
-function find_average_posts_per_user($data){ 
-    $user_count = 0;
-    $post_count = 0;
-    $user_pool = array();
+function find_average_posts_per_user(array $data) {
+  $user_count = 0;
+  $post_count = 0;
+  $user_pool = array();
 
-    foreach ($data as $post) {
+  foreach ($data as $post) {
 
-      if (!in_array($post['from_id'], $user_pool)) {
-        $user_pool[] = $post['from_id'];
-        $user_count += 1;
-      }
-      
-      $post_count += 1;
+    if (!in_array($post['from_id'], $user_pool)) {
+      $user_pool[] = $post['from_id'];
+      $user_count += 1;
     }
- 
-    return empty($user_count) ? 0 : round($post_count/$user_count, 1);
+
+    $post_count += 1;
+  }
+
+  return empty($user_count) ? 0 : round($post_count / $user_count, 1);
 }
 
-function get_total_posts_per_week($data){ 
-    $posts_by_week = array();
-    $counts_per_week = array();
+function get_total_posts_per_week(array $data) {
+  $posts_by_week = array();
+  $counts_per_week = array();
 
-    foreach ($data as $post) {
-      $week = date('W', strtotime($post['created_time']));
-      $posts_by_week[$week][] = $post;
-    }
-    ksort($posts_by_week);
+  foreach ($data as $post) {
+    $week = date('W', strtotime($post['created_time']));
+    $posts_by_week[$week][] = $post;
+  }
+  ksort($posts_by_week);
 
-    // @TODO: could be optimized if $posts_by_week does not need to be returned
-    foreach ($posts_by_week as $week => $weekly_posts) {
-      $counts_per_week[$week] = count($weekly_posts);
-    }
+  // @TODO: could be optimized if $posts_by_week does not need to be returned
+  foreach ($posts_by_week as $week => $weekly_posts) {
+    $counts_per_week[$week] = count($weekly_posts);
+  }
 
-    return $counts_per_week;
+  return $counts_per_week;
 }
 
 function run() {
@@ -207,7 +208,7 @@ function run() {
   echo "\n";
 
   echo "month: $month \n";
-  echo "Total posts in this month found: ".count($data);
+  echo "Total posts in this month found: " . count($data);
   echo "\n";
 
   echo "Average character length per post: ";
@@ -228,7 +229,6 @@ function run() {
   echo "Average number of posts per user: ";
   echo find_average_posts_per_user($data);
   echo "\n";
-
 }
 
 run();
