@@ -142,33 +142,30 @@ function find_length_of_longest_post_by_char(array $data) {
 }
 
 function find_average_length_per_post(array $data) {
+  if (count($data) == 0) {
+	  return 0;
+  }
+  
   $char_count = 0;
-  $post_count = 0;
-
   foreach ($data as $post) {
     $char_count += $post['post_length'];
-    $post_count += 1;
   }
 
-  return empty($post_count) ? 0 : round($char_count / $post_count, 1);
+  return round($char_count / count($data), 1);
 }
 
 function find_average_posts_per_user(array $data) {
   $user_count = 0;
-  $post_count = 0;
   $user_pool = array();
 
   foreach ($data as $post) {
-
     if (!in_array($post['from_id'], $user_pool)) {
       $user_pool[] = $post['from_id'];
       $user_count += 1;
     }
-
-    $post_count += 1;
   }
 
-  return empty($user_count) ? 0 : round($post_count / $user_count, 1);
+  return empty($user_count) ? 0 : round(count($data) / $user_count, 1);
 }
 
 function get_total_posts_per_week(array $data) {
