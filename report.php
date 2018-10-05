@@ -109,7 +109,6 @@ function filter_post_data_by_month(array $posts, int $month = 0) {
     if (!empty($month) && $created_month != $month) {
       continue;
     }
-    $filtered['uuid'] = $post['id'];
     $filtered['from_id'] = $post['from_id'];
     $filtered['created_time'] = $post['created_time'];
 
